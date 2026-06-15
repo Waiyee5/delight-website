@@ -285,6 +285,10 @@
 }
 .float-wa:hover { transform: scale(1.15); animation: none; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  emailjs.init("AOtl5m0H5kNFMGJco"); // 🔁 Replace with your actual Public Key
+</script>
 </head>
 <body>
 
@@ -453,7 +457,7 @@
       <div class="contact-items">
         <div class="contact-item"><div class="contact-icon">📍</div><div><h4>Location</h4><p>Mikinduri Stage, Meru County, Kenya</p></div></div>
         <div class="contact-item"><div class="contact-icon">📞</div><div><h4>Phone / WhatsApp</h4><p><a href="tel:0706320741" style="color:var(--yellow); text-decoration:none;">0706 320 741</a></p></div></div>
-        <div class="contact-item"><div class="contact-icon">✉️</div><div><h4>Email</h4><p><a href="mailto:delightelectricals001@gmail.com" style="color:var(--yellow); text-decoration:none; word-break:break-all;">delightelectricals001@gmail.com</a></p></div></div>
+        <div class="contact-item"><div class="contact-icon">✉️</div><div><h4>Email</h4><p><a href="mailto:delightelictricals001@gmail.com" style="color:var(--yellow); text-decoration:none; word-break:break-all;">delightelictricals001@gmail.com</a></p></div></div>
         <div class="contact-item"><div class="contact-icon">🕐</div><div><h4>Opening Hours</h4><p>Mon – Sat: 8:00 AM – 6:00 PM<br>Sunday: 9:00 AM – 5:00 PM</p></div></div>
       </div>
     </div>
@@ -677,13 +681,89 @@ function toggleMenu() {
 }
 
 function submitForm() {
-  const name = document.getElementById('cName').value;
-  if (!name.trim()) { alert('Please enter your name.'); return; }
+  const name    = document.getElementById('cName').value.trim();
+  const phone   = document.getElementById('cPhone').value.trim();
+  const email   = document.getElementById('cEmail').value.trim();
+  const service = document.getElementById('cService').value;
+  const message = document.getElementById('cMessage').value.trim();
+
+  // Basic validation
+  if (!name)    { showError('Please enter your name.'); return; }
+  if (!phone)   { showError('Please enter your phone number.'); return; }
+  if (!email)   { showError('Please enter your email address.'); return; }
+  if (!service) { showError('Please select a service.'); return; }
+  if (!message) { showError('Please enter a message.'); return; }
+
+  // Show loading state
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = '⏳ Sending...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+
+  const templateParams = {
+    name:  name,
+    phone:      phone,
+    email: email,
+    service:    service,
+    message:    message,
+  };
+
+  // Send email TO YOU (owner)
+  emailjs.send("service_2twrchj", "template_jox3wjv", templateParams)
+  .then(() => {
+    // Send confirmation email TO CLIENT
+    return emailjs.send("service_2twrchj", "template_rx8vnwn", templateParams);
+  })
+  .then(() => {
+    // Success
+    btn.textContent = '✅ Message Sent!';
+    btn.style.background = '#25D366';
+    btn.style.opacity = '1';
+    showToast('✅ Message sent! Check your email for confirmation.');
+
+    // Clear form
+    ['cName','cPhone','cEmail','cMessage'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('cService').value = '';
+
+    // Reset button after 4 seconds
+    setTimeout(() => {
+      btn.textContent = '⚡ Send Message';
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 4000);
+  })
+  .catch((error) => {
+    console.error('EmailJS error:', error);
+    btn.textContent = '❌ Failed. Try Again';
+    btn.style.background = '#E02020';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+    showError('Something went wrong. Please call us on 0706 320 741.');
+    setTimeout(() => {
+      btn.textContent = '⚡ Send Message';
+      btn.style.background = '';
+    }, 4000);
+  });
+}
+
+function showError(msg) {
+  const existing = document.getElementById('form-error');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'form-error';
+  div.style.cssText = 'background:#E02020; color:#fff; padding:10px 16px; border-radius:4px; margin-bottom:1rem; font-size:0.88rem; font-weight:600;';
+  div.textContent = '⚠️ ' + msg;
+  document.querySelector('.form-submit').insertAdjacentElement('beforebegin', div);
+  setTimeout(() => div.remove(), 5000);
+}
+
+function showToast(msg) {
   const toast = document.getElementById('toast');
+  toast.textContent = msg;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 4000);
-  ['cName','cPhone','cEmail','cMessage'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('cService').value = '';
+  setTimeout(() => toast.classList.remove('show'), 5000);
 }
 
 document.getElementById('shopImg').src = SHOP_IMAGE_PLACEHOLDER;
